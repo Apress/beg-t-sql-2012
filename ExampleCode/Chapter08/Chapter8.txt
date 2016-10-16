@@ -1,0 +1,370 @@
+Listing 8-1. OPENXML Query
+DECLARE @hdoc int
+DECLARE @doc varchar(1000) = N'
+<Products>
+<Product ProductID="32565451" ProductName="Bicycle Pump">
+<Order ProductID="32565451" SalesID="5" OrderDate="2011-07-04T00:00:00">
+<OrderDetail OrderID="10248" CustomerID="22" Quantity="12"/>
+<OrderDetail OrderID="10248" CustomerID="11" Quantity="10"/>
+</Order>
+</Product>
+<Product ProductID="57841259" ProductName="Bicycle Seat">
+<Order ProductID="57841259" SalesID="3" OrderDate="2011-08-16T00:00:00">
+<OrderDetail OrderID="54127" CustomerID="72" Quantity="3"/>
+</Order>
+</Product>
+</Products>';
+EXEC sp_xml_preparedocument @hdoc OUTPUT, @doc
+SELECT *
+FROM OPENXML(@hdoc, N'/Products/Product');
+EXEC sp_xml_removedocument @hdoc;
+
+
+Listing 8-2. OPENXML Query Using the WITH Clause
+DECLARE @hdoc int
+DECLARE @doc varchar(1000) = N'
+<Products>
+<Product ProductID="32565451" ProductName="Bicycle Pump">
+<Order ProductID="32565451" SalesID="5" OrderDate="2011-07-04T00:00:00">
+<OrderDetail OrderID="10248" CustomerID="22" Quantity="12"/>
+<OrderDetail OrderID="10248" CustomerID="11" Quantity="10"/>
+</Order>
+</Product>
+<Product ProductID="57841259" ProductName="Bicycle Seat">
+<Order ProductID="57841259" SalesID="3" OrderDate="2011-08-16T00:00:00">
+<OrderDetail OrderID="54127" CustomerID="72" Quantity="3"/>
+</Order>
+</Product>
+</Products>';
+EXEC sp_xml_preparedocument @hdoc OUTPUT, @doc
+SELECT *
+FROM OPENXML(@hdoc, N'/Products/Product/Order/OrderDetail')
+WITH (CustomerID int '@CustomerID',
+ProductID int '../@ProductID',
+ProductName varchar(30) '../../@ProductName',
+OrderID int '@OrderID',
+Orderdate varchar(30) '../@OrderDate');
+EXEC sp_xml_removedocument @hdoc;
+
+
+Listing 8-3. Attribute-Centric Mapping
+DECLARE @hdoc int
+DECLARE @doc varchar(1000) = N'
+<Orders>
+<Order OrderID="123458">
+<ProductID>32565451</ProductID>
+<ProductName>Bicycle Pump</ProductName>
+<SalesID>5</SalesID>
+<OrderDetail>
+<CustomerID>22</CustomerID>
+<Quantity>12</Quantity>
+</OrderDetail>
+</Order>
+</Orders>';
+EXEC sp_xml_preparedocument @hdoc OUTPUT, @doc
+SELECT *
+FROM OPENXML(@hdoc, N'/Orders/Order', 1)
+WITH (ProductID int,
+ProductName varchar(30),
+SalesID varchar(10),
+OrderID int,
+CustomerID int);
+EXEC sp_xml_removedocument @hdoc;
+
+
+Listing 8-4. Element-Centric Mapping
+DECLARE @hdoc int
+DECLARE @doc varchar(1000) = N'
+<Orders>
+<Order OrderID="123458">
+<ProductID>32565451</ProductID>
+<ProductName>Bicycle Pump</ProductName>
+<SalesID>5</SalesID>
+<OrderDetail>
+<CustomerID>22</CustomerID>
+<Quantity>12</Quantity>
+</OrderDetail>
+</Order>
+</Orders>';
+EXEC sp_xml_preparedocument @hdoc OUTPUT, @doc
+SELECT *
+FROM OPENXML(@hdoc, N'/Orders/Order', 2)
+WITH (ProductID int,
+ProductName varchar(30),
+SalesID varchar(10),
+OrderID int,
+CustomerID int);
+EXEC sp_xml_removedocument @hdoc;
+
+Listing 8-5. Use of ColPattern in the WITH Clause
+DECLARE @hdoc int
+DECLARE @doc varchar(1000) = N'
+<Orders>
+<Order OrderID="123458">
+<ProductID>32565451</ProductID>
+<ProductName>Bicycle Pump</ProductName>
+<SalesID>5</SalesID>
+<OrderDetail>
+<CustomerID>22</CustomerID>
+<Quantity>12</Quantity>
+</OrderDetail>
+</Order>
+</Orders>';
+EXEC sp_xml_preparedocument @hdoc OUTPUT, @doc
+SELECT *
+FROM OPENXML(@hdoc, N'/Orders/Order/OrderDetail')
+WITH (ProductID int '../ProductID',
+ProductName varchar(30) '../ProductName',
+SalesID varchar(10) '../SalesID',
+OrderID int '../@OrderID',
+CustomerID int 'CustomerID');
+EXEC sp_xml_removedocument @hdoc;
+
+
+Listing 8-6. Generating XML Using the FOR XML RAW Command
+USE AdventureWorks2012;
+GO
+SELECT TOP 5 FirstName
+FROM Person.Person
+FOR XML RAW;
+
+
+Listing 8-7. XML Output Using the FOR XML RAW Command
+<row FirstName="Syed" />
+<row FirstName="Catherine" />
+<row FirstName="Kim" />
+<row FirstName="Kim" />
+<row FirstName="Kim" />
+
+
+Listing 8-8. Creating Element-Centric XML Using XML RAW
+--Run this query
+USE AdventureWorks2012;
+GO
+SELECT TOP 5 FirstName, LastName
+FROM Person.Person
+FOR XML RAW ('NAME'), ELEMENTS
+
+
+295
+Listing 8-9. Using AUTO Mode
+--Execute the query
+USE AdventureWorks2012;
+GO
+SELECT CustomerID, LastName, FirstName, MiddleName
+FROM Person.Person AS p
+INNER JOIN Sales.
+
+
+Listing 8-10. Using AUTO Mode with ELEMENTS Option
+--Run the query
+USE AdventureWorks2012;
+GO
+SELECT CustomerID, LastName, FirstName, MiddleName
+FROM Person.Person AS Person
+INNER JOIN Sales.Customer AS Customer ON Person.BusinessEntityID = Customer.PersonID
+FOR XML AUTO, ELEMENTS;
+
+Listing 8-11. Using XML FOR EXPLICIT
+--Run the query
+USE AdventureWorks2012;
+GO
+SELECT 1 AS Tag,
+NULL AS Parent,
+CustomerID AS [Customer!1!CustomerID],
+NULL AS [Name!2!FName],
+NULL AS [Name!2!LName]
+FROM Sales.Customer AS C
+INNER JOIN Person.Person AS P
+ON P.BusinessEntityID = C.PersonID
+UNION
+SELECT 2 AS Tag,
+1 AS Parent,
+CustomerID,
+FirstName,
+LastName
+FROM Person.Person P
+INNER JOIN Sales.Customer AS C
+ON P.BusinessEntityID = C.PersonID
+ORDER BY [Customer!1!CustomerID], [Name!2!FName]
+FOR XML EXPLICIT;
+
+
+Listing 8-12. Simple FOR XML PATH Query
+--Run the query
+USE AdventureWorks2012;
+GO
+SELECT p.FirstName,
+p.LastName,
+s.Bonus,
+s.SalesYTD
+FROM Person.Person p
+JOIN Sales.SalesPerson s
+ON p.BusinessEntityID = s.BusinessEntityID
+FOR XML PATH
+
+Listing 8-13. Defining XML Hierarchy Using PATH Mode
+--Run the query
+USE AdventureWorks2012;
+GO
+SELECT p.FirstName "@FirstName",
+p.LastName "@LastName",
+s.Bonus "Sales/Bonus",
+s.SalesYTD "Sales/YTD"
+FROM Person.Person p
+JOIN Sales.SalesPerson s
+ON p.BusinessEntityID = s.BusinessEntityID
+FOR XML PATH
+
+
+Listing 8-14. Simple FOR XML PATH Query with NAME Option
+--Run the query
+USE AdventureWorks2012;
+GO
+SELECT ProductID "@ProductID",
+Name "Product/ProductName",
+Color "Product/Color"
+FROM Production.Product
+FOR XML PATH ('Product')
+
+
+Listing 8-15. Built-in XML Data Type
+USE tempdb;
+GO
+CREATE TABLE ProductList (ProductInfo XML);
+
+
+Listing 8-16. Using XML as a Data Type
+USE AdventureWorks2012;
+GO
+--1
+CREATE TABLE #CustomerList (CustomerInfo XML);
+--2
+DECLARE @XMLInfo XML;
+--3
+SET @XMLInfo = (SELECT CustomerID, LastName, FirstName, MiddleName
+FROM Person.Person AS p
+INNER JOIN Sales.Customer AS c ON p.BusinessEntityID = c.PersonID
+FOR XML PATH);
+--4
+INSERT INTO #CustomerList(CustomerInfo)
+VALUES(@XMLInfo);
+--5
+SELECT CustomerInfo FROM #CustomerList;
+DROP TABLE #CustomerList;
+
+
+Listing 8-17. Using the query() Method Against XML Data
+--Run query
+USE AdventureWorks2012;
+GO
+SELECT Demographics.query('declare namespace ss =
+"http://schemas.microsoft.com/sqlserver/2004/07/adventure-works/StoreSurvey";
+<Store AnnualSales = "{ /ss:StoreSurvey/ss:AnnualSales }"
+BankName = "{ /ss:StoreSurvey/ss:BankName }" />
+') AS Result
+FROM Sales.Store;
+The following is the output:
+<Store AnnualSales="800000" BankName="United Security" />
+<Store AnnualSales="800000" BankName="International Bank" />
+<Store AnnualSales="800000" BankName="Primary Bank &amp; Reserve" />
+<Store AnnualSales="800000" BankName="International Security" />
+<Store AnnualSales="800000" BankName="Guardian Bank" />
+
+
+Listing 8-18. Using the value() Method
+USE AdventureWorks2012;
+GO
+SELECT Demographics.value('declare namespace ss =
+"http://schemas.microsoft.com/sqlserver/2004/07/adventure-works/StoreSurvey";
+(/ss:StoreSurvey/ss:BankName)[1]', 'varchar(100)') AS Result
+FROM Sales.Store
+
+
+Listing 8-19. Using the exist() Method
+USE AdventureWorks2012;
+GO
+SELECT Demographics.value('declare namespace ss =
+"http://schemas.microsoft.com/sqlserver/2004/07/adventure-works/StoreSurvey";
+(/ss:StoreSurvey/ss:BankName)[1]', 'varchar(100)') AS LargeAnnualSales
+FROM Sales.Store
+WHERE Demographics.exist('declare namespace ss =
+"http://schemas.microsoft.com/sqlserver/2004/07/adventure-works/StoreSurvey";
+/ss:StoreSurvey/ss:AnnualSales [. = 3000000]') = 1
+
+
+Listing 8-20. Inserting, Updating, and Deleting XML Using the modify() Method
+DECLARE @x xml =
+'<Product ProductID = "521487">
+<ProductType>Paper Towels</ProductType>
+<Price>15</Price>
+<Vendor>Johnson Paper</Vendor>
+<VendorID>47</VendorID>
+<QuantityOnHand>500</QuantityOnHand>
+</Product>'
+SELECT @x
+/* inserting data into xml with the modify method */
+SET @x.modify('
+insert <WarehouseID>77</WarehouseID>
+into (/Product)[1]')
+SELECT @x
+/* updating xml with the modify method */
+SET @x.modify('
+replace value of (/Product/QuantityOnHand[1]/text())[1]
+with "250"')
+SELECT @x
+/* deleting xml with the modify method */
+SET @x.modify('
+delete (/Product/Price)[1]')
+SELECT @x
+
+
+Listing 8-21. Declaring and Selecting XML Data
+--Run the query
+DECLARE @x xml =
+'<Product ProductID = "521487">
+<ProductType>Paper Towels</ProductType>
+<Price>15</Price>
+<Vendor>Johnson Paper</Vendor>
+<VendorID>47</VendorID>
+<QuantityOnHand>500</QuantityOnHand>
+</Product>'
+SELECT @x
+
+
+Listing 8-22. Declaring and Inserting XML Data
+--Run the query
+SET @x.modify('
+insert <WarehouseID>77</WarehouseID>
+into (/Product)[1]')
+SELECT @x
+
+
+Listing 8-23. Declaring and Inserting XML Data
+--Run the query
+SET @x.modify('
+replace value of (/Product/QuantityOnHand[1]/text())[1]
+with "250"')
+SELECT @x
+
+
+Listing 8-24. Declaring and Inserting XML Data
+--Run the query
+SET @x.modify('
+delete (/Product/Price)[1]')
+SELECT @x
+
+
+Listing 8-25. Shredding XML Using the node() Method
+USE AdventureWorks2012;
+GO
+SELECT Name,
+SalesPersonID,
+AnnualSales.query('.') AS XMLResult
+FROM Sales.Store
+CROSS APPLY
+Demographics.nodes('declare namespace ss =
+"http://schemas.microsoft.com/sqlserver/2004/07/adventure-works/StoreSurvey";
+/ss:StoreSurvey/ss:AnnualSales') AS NodeTable(AnnualSales)
+
+

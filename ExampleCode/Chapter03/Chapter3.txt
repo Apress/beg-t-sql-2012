@@ -1,0 +1,487 @@
+Listing 3-1. Concatenating Strings
+USE AdventureWorks2012;
+GO
+--1
+SELECT 'ab' + 'c';
+--2
+SELECT BusinessEntityID, FirstName + ' ' + LastName AS "Full Name"
+FROM Person.Person;
+--3
+SELECT BusinessEntityID, LastName + ', ' + FirstName AS "Full Name"
+FROM Person.Person;
+
+
+Listing 3-2. Concatenating Strings with NULL Values
+USE AdventureWorks2012;
+GO
+SELECT BusinessEntityID, FirstName + ' ' + MiddleName +
+' ' + LastName AS "Full Name"
+FROM Person.Person;
+
+
+Listing 3-3. CONCAT Examples
+-- Simple CONCAT statement
+SELECT CONCAT ('I ', 'love', ' writing', ' T-SQL') AS RESULT;
+--Using variable with CONCAT
+DECLARE @a VARCHAR(30) = 'My birthday is on '
+DECLARE @b DATE = '08/25/1980'
+SELECT CONCAT (@a, @b) AS RESULT;
+--Using CONCAT with table rows
+USE AdventureWorks2012
+SELECT CONCAT (AddressLine1, PostalCode) AS Address
+FROM Person.Address;
+
+
+Listing 3-4. Using ISNULL and COALESCE
+USE AdventureWorks2012;
+GO
+--1
+SELECT BusinessEntityID, FirstName + ' ' + ISNULL(MiddleName,'') +
+' ' + LastName AS "Full Name"
+FROM Person.Person;
+--2
+SELECT BusinessEntityID, FirstName + ISNULL(' ' + MiddleName,'') +
+' ' + LastName AS "Full Name"
+FROM Person.Person;
+--3
+SELECT BusinessEntityID, FirstName + COALESCE(' ' + MiddleName,'') +
+' ' + LastName AS "Full Name"
+FROM Person.Person;
+
+
+Listing 3-5. Using CAST and CONVERT
+USE AdventureWorks2012
+GO
+--1
+SELECT CAST(BusinessEntityID AS NVARCHAR) + ': ' + LastName
++ ', ' + FirstName AS ID_Name
+FROM Person.Person;
+--2
+SELECT CONVERT(NVARCHAR(10),BusinessEntityID) + ': ' + LastName
++ ', ' + FirstName AS ID_Name
+FROM Person.Person;
+--3
+SELECT BusinessEntityID, BusinessEntityID + 1 AS "Adds 1",
+CAST(BusinessEntityID AS NVARCHAR(10)) + '1'AS "Appends 1"
+FROM Person.Person;
+
+
+Listing 3-6. Using Mathematical Operators
+USE AdventureWorks2012;
+GO
+--1
+SELECT 1 + 1;
+--2
+SELECT 10 / 3 AS DIVISION, 10 % 3 AS MODULO;
+--3
+SELECT OrderQty, OrderQty * 10 AS Times10
+FROM Sales.SalesOrderDetail;
+--4
+SELECT OrderQty * UnitPrice * (1.0 - UnitPriceDiscount)
+AS Calculated, LineTotal
+FROM Sales.SalesOrderDetail;
+--5
+SELECT SpecialOfferID,MaxQty,DiscountPct,
+DiscountPct * ISNULL(MaxQty1000) AS MaxDiscount
+FROM Sales.SpecialOffer;
+
+
+Listing 3-7. Using RTRIM and LTRIM
+--Create the temp table
+CREATE TABLE #trimExample (COL1 VARCHAR(10));
+GO
+--Populate the table
+INSERT INTO #trimExample (COL1)
+VALUES ('a '),('b '),(' c'),(' d ');
+--Select the values using the functions
+SELECT COL1, '*' + RTRIM(COL1) + '*' AS "RTRIM",
+'*' + LTRIM(COL1) + '*' AS "LTRIM"
+FROM #trimExample;
+--Clean up
+DROP TABLE #trimExample;
+
+
+Listing 3-8. The LEFT and RIGHT Functions
+USE AdventureWorks2012;
+GO
+SELECT LastName,LEFT(LastName,5) AS "LEFT",
+RIGHT(LastName,4) AS "RIGHT"
+FROM Person.Person
+WHERE BusinessEntityID IN (293,295,211,297,299,3057,15027);
+
+
+Listing 3-9. Using the LEN and DATALENGTH Functions
+USE AdventureWorks2012;
+GO
+SELECT LastName,LEN(LastName) AS "Length",
+DATALENGTH(LastName) AS "Data Length"
+FROM Person.Person
+WHERE BusinessEntityID IN (293,295,211,297,299,3057,15027);
+
+
+Listing 3-10. Using CHARINDEX
+USE AdventureWorks2012;
+GO
+SELECT LastName, CHARINDEX('e',LastName) AS "Find e",
+CHARINDEX('e',LastName,4) AS "Skip 4 Characters",
+CHARINDEX('be',LastName) AS "Find be",
+CHARINDEX('Be',LastName) AS "Find B"
+FROM Person.Person
+WHERE BusinessEntityID IN (293,295,211,297,299,3057,15027);
+
+
+Listing 3-11. Using SUBSTRING
+USE AdventureWorks2012;
+GO
+SELECT LastName, SUBSTRING(LastName,1,4) AS "First 4",
+SUBSTRING(LastName,5,50) AS "Characters 5 and later"
+FROM Person.Person
+WHERE BusinessEntityID IN (293,295,211,297,299,3057,15027);
+
+Listing 3-12. Using the CHOOSE Function
+SELECT CHOOSE (4, 'a', 'b', c, 'd', 'e', 'f', 'g', 'h', 'i')
+
+
+Listing 3-13. Using UPPER and LOWER
+USE AdventureWorks2012;
+GO
+SELECT LastName, UPPER(LastName) AS "UPPER",
+LOWER(LastName) AS "LOWER"
+FROM Person.Person
+WHERE BusinessEntityID IN (293,295,211,297,299,3057,15027);
+
+
+Listing 3-14. Using REPLACE
+USE AdventureWorks2012;
+GO
+--1
+SELECT LastName, REPLACE(LastName,'A','Z') AS "Replace A",
+REPLACE(LastName,'A','ZZ') AS "Replace with 2 characters",
+REPLACE(LastName,'ab','') AS "Remove string"
+FROM Person.Person
+WHERE BusinessEntityID IN (293,295,211,297,299,3057,15027);
+--2
+SELECT BusinessEntityID,LastName,MiddleName,
+REPLACE(LastName,'a',MiddleName) AS "Replace with MiddleName",
+REPLACE(LastName,MiddleName,'a') AS "Replace MiddleName"
+FROM Person.Person
+WHERE BusinessEntityID IN (285,293,10314);
+
+
+Listing 3-15. Nesting Functions
+USE AdventureWorks2012;
+GO
+--1
+SELECT EmailAddress,
+SUBSTRING(EmailAddress,CHARINDEX('@',EmailAddress) + 1,50) AS DOMAIN
+FROM Production.ProductReview;
+--2
+SELECT EmailAddress,
+RIGHT(EmailAddress, CHARINDEX('@',REVERSE(EmailAddress))-1) AS DOMAIN
+FROM Production.ProductReview;
+
+
+Listing 3-16. Using the DATEADD Function
+Use AdventureWorks2012
+GO
+--1
+SELECT OrderDate, DATEADD(year,1,OrderDate) AS OneMoreYear,
+DATEADD(month,1,OrderDate) AS OneMoreMonth,
+DATEADD(day,-1,OrderDate) AS OneLessDay
+FROM Sales.SalesOrderHeader
+WHERE SalesOrderID in (43659,43714,60621);
+--2
+SELECT DATEADD(month,1,'1/29/2009') AS FebDate;
+
+
+Listing 3-17. Using DATEDIFF
+Use AdventureWorks2012;
+GO
+--1
+SELECT OrderDate, GETDATE() CurrentDateTime,
+DATEDIFF(year,OrderDate,GETDATE()) AS YearDiff,
+DATEDIFF(month,OrderDate,GETDATE()) AS MonthDiff,
+DATEDIFF(day,OrderDate,GETDATE()) AS DayDiff
+FROM Sales.SalesOrderHeader
+WHERE SalesOrderID in (43659,43714,60621);
+--2
+SELECT DATEDIFF(year,'12/31/2008','1/1/2009') AS YearDiff,
+DATEDIFF(month,'12/31/2008','1/1/2009') AS MonthDiff,
+DATEDIFF(day,'12/31/2008','1/1/2009') AS DayDiff;
+
+
+Listing 3-18. Using DATENAME and DATEPART
+Use AdventureWorks2012
+GO
+--1
+SELECT OrderDate, DATEPART(year,OrderDate) AS OrderYear,
+DATEPART(month,OrderDate) AS OrderMonth,
+DATEPART(day,OrderDate) AS OrderDay,
+DATEPART(weekday,OrderDate) AS OrderWeekDay
+FROM Sales.SalesOrderHeader
+WHERE SalesOrderID in (43659,43714,60621);
+--2
+SELECT OrderDate, DATENAME(year,OrderDate) AS OrderYear,
+DATENAME(month,OrderDate) AS OrderMonth,
+DATENAME(day,OrderDate) AS OrderDay,
+DATENAME(weekday,OrderDate) AS OrderWeekDay
+FROM Sales.SalesOrderHeader
+WHERE SalesOrderID in (43659,43714,60621);
+
+
+Listing 3-19. Using the DAY, MONTH, and YEAR Functions
+Use AdventureWorks2012
+GO
+SELECT OrderDate, YEAR(OrderDate) AS OrderYear,
+MONTH(OrderDate) AS OrderMonth,
+DAY(OrderDate) AS OrderDay
+FROM Sales.SalesOrderHeader
+WHERE SalesOrderID in (43659,43714,60621);
+
+
+Listing 3-20. Using CONVERT to Format a Date/Time Value
+--1 The hard way!
+SELECT CAST(DATEPART(YYYY,GETDATE()) AS VARCHAR) + '/' +
+CAST(DATEPART(MM,GETDATE()) AS VARCHAR) +
+'/' + CAST(DATEPART(DD,GETDATE()) AS VARCHAR) AS DateCast;
+--2 The easy way!
+SELECT CONVERT(VARCHAR,GETDATE(),111) AS DateConvert;
+--3
+USE AdventureWorks2012
+GO
+SELECT CONVERT(VARCHAR,OrderDate,1) AS "1",
+CONVERT(VARCHAR,OrderDate,101) AS "101",
+CONVERT(VARCHAR,OrderDate,2) AS "2",
+CONVERT(VARCHAR,OrderDate,102) AS "102"
+FROM Sales.SalesOrderHeader
+WHERE SalesOrderID in (43659,43714,60621);
+
+
+Listing 3-21. FORMAT Function Examples
+DECLARE @d DATETIME = GETDATE();
+SELECT FORMAT( @d, 'dd', 'en-US' ) AS Result;
+SELECT FORMAT( @d, 'd/M/y', 'en-US' ) AS Result;
+SELECT FORMAT( @d, 'dd/MM/yyyy', 'en-US' ) AS Result;
+
+
+Listing 3-22. DATEFROMPARTS Examples
+SELECT DATEFROMPARTS(2012, 3, 10) AS RESULT;
+SELECT TIMEFROMPARTS(12, 10, 32, 0, 0) AS RESULT;
+SELECT DATETIME2FROMPARTS (2012, 3, 10, 12, 10, 32, 0, 0) AS RESULT;
+
+
+Listing 3-23. Using POWER
+SELECT POWER(10,1) AS "Ten to the First",
+POWER(10,2) AS "Ten to the Second",
+POWER(10,3) AS "Ten to the Third";
+
+
+Listing 3-24. Using the SQUARE and SQRT Functions
+SELECT SQUARE(10) AS "Square of 10",
+SQRT(10) AS "Square Root of 10",
+SQRT(SQUARE(10)) AS "The Square Root of the Square of 10";
+
+
+Listing 3-25. Using ROUND
+SELECT ROUND(1234.1294,2) AS "2 places on the right",
+ROUND(1234.1294,-2) AS "2 places on the left",
+ROUND(1234.1294,2,1) AS "Truncate 2",
+ROUND(1234.1294,-2,1) AS "Truncate -2";
+
+
+Listing 3-26. Using RAND
+SELECT CAST(RAND() * 100 AS INT) + 1 AS "1 to 100",
+CAST(RAND()* 1000 AS INT) + 900 AS "900 to 1900",
+CAST(RAND() * 5 AS INT)+ 1 AS "1 to 5";
+
+
+Listing 3-27. Using Simple CASE
+USE AdventureWorks2012;
+GO
+SELECT Title,
+CASE Title
+WHEN 'Mr.' THEN 'Male'
+WHEN 'Ms.' THEN 'Female'
+WHEN 'Mrs.' THEN 'Female'
+WHEN 'Miss' THEN 'Female'
+ELSE 'Unknown' END AS Gender
+FROM Person.Person
+WHERE BusinessEntityID IN (1,5,6,357,358,11621,423);
+
+
+Listing 3-28. Using Searched CASE
+SELECT Title,
+CASE WHEN Title IN ('Ms.','Mrs.','Miss') THEN 'Female'
+WHEN Title = 'Mr.' THEN 'Male'
+ELSE 'Unknown' END AS Gender
+FROM Person.Person
+WHERE BusinessEntityID IN (1,5,6,357,358,11621,423);
+
+Listing 3-29. Returning a Column Name in CASE
+USE AdventureWorks2012;
+GO
+SELECT VacationHours,SickLeaveHours,
+CASE WHEN VacationHours > SickLeaveHours THEN VacationHours
+ELSE SickLeaveHours END AS 'More Hours'
+FROM HumanResources.Employee;
+
+
+Listing 3-30. IIF Statement
+--IIF Statement without variables
+SELECT IIF (50 > 20, 'TRUE', 'FALSE') AS RESULT;
+--IIF Statement with variables
+DECLARE @a INT = 50
+DECLARE @b INT = 25
+SELECT IIF (@a > @b, 'TRUE', 'FALSE') AS RESULT;
+
+
+Listing 3-31. Using COALESCE
+USE AdventureWorks2012;
+GO
+SELECT ProductID,Size, Color,
+COALESCE(Size, Color,'No color or size') AS 'Description'
+FROM Production.Product
+where ProductID in (1,2,317,320,680,706);
+
+
+Listing 3-32. A Few System Functions
+SELECT DB_NAME() AS "Database Name",
+HOST_NAME() AS "Host Name",
+CURRENT_USER AS "Current User",
+USER_NAME() AS "User Name",
+APP_NAME() AS "App Name";
+
+
+Listing 3-33. Using Functions in WHERE and ORDER BY
+USE AdventureWorks2012;
+GO
+--1
+SELECT FirstName
+FROM Person.Person
+WHERE CHARINDEX('ke',FirstName) > 0;
+--2
+SELECT LastName,REVERSE(LastName)
+FROM Person.Person
+ORDER BY REVERSE(LastName);
+--3
+SELECT BirthDate
+FROM HumanResources.Employee
+ORDER BY YEAR(BirthDate);
+
+
+Listing 3-34. Limiting Results with TOP
+USE AdventureWorks2012;
+GO
+--1
+IF OBJECT_ID('dbo.Sales') IS NOT NULL BEGIN
+DROP TABLE dbo.Sales;
+END;
+--2
+CREATE TABLE dbo.Sales (CustomerID INT, OrderDate DATE,
+SalesOrderID INT NOT NULL PRIMARY KEY);
+GO
+--3
+INSERT TOP(5) INTO dbo.Sales(CustomerID,OrderDate,SalesOrderID)
+SELECT CustomerID, OrderDate, SalesOrderID
+FROM Sales.SalesOrderHeader;
+--4
+SELECT CustomerID, OrderDate, SalesOrderID
+FROM dbo.Sales
+ORDER BY SalesOrderID;
+--5
+DELETE TOP(2) dbo.Sales
+--6
+UPDATE TOP(2) dbo.Sales SET CustomerID = CustomerID + 10000;
+--7
+SELECT CustomerID, OrderDate, SalesOrderID
+FROM dbo.Sales
+ORDER BY SalesOrderID;
+--8
+DECLARE @Rows INT = 2;
+SELECT TOP(@Rows) CustomerID, OrderDate, SalesOrderID
+FROM dbo.Sales
+ORDER BY SalesOrderID;
+
+
+USE AdventureWorks2012;
+GO
+--1
+SELECT CustomerID, FirstName + ' ' + LastName AS Name,
+ROW_NUMBER() OVER (ORDER BY LastName, FirstName) AS Row
+FROM Sales.Customer AS c INNER JOIN Person.Person AS p
+ON c.PersonID = p.BusinessEntityID;
+--2
+WITH customers AS (
+SELECT CustomerID, FirstName + ' ' + LastName AS Name,
+ROW_NUMBER() OVER (ORDER BY LastName, FirstName) AS Row
+FROM Sales.Customer AS c INNER JOIN Person.Person AS p
+ON c.PersonID = p.BusinessEntityID
+)
+SELECT CustomerID, Name, Row
+FROM customers
+WHERE Row > 50
+ORDER BY Row;
+--3
+SELECT CustomerID, FirstName + ' ' + LastName AS Name, c.TerritoryID,
+ROW_NUMBER() OVER (PARTITION BY c.TerritoryID
+ORDER BY LastName, FirstName) AS Row
+FROM Sales.Customer AS c INNER JOIN Person.Person AS p
+ON c.PersonID = p.BusinessEntityID;
+
+
+Listing 3-36. Using RANK and DENSE_RANK
+USE AdventureWorks2012;
+GO
+SELECT CustomerID,COUNT(*) AS CountOfSales,
+RANK() OVER(ORDER BY COUNT(*) DESC) AS Ranking,
+ROW_NUMBER() OVER(ORDER BY COUNT(*) DESC) AS Row,
+DENSE_RANK() OVER(ORDER BY COUNT(*) DESC) AS DenseRanking
+FROM Sales.SalesOrderHeader
+GROUP BY CustomerID
+ORDER BY COUNT(*) DESC;
+
+
+Listing 3-37. Using NTILE
+USE AdventureWorks2012;
+GO
+SELECT SalesPersonID,SUM(TotalDue) AS TotalSales,
+NTILE(10) OVER(ORDER BY SUM(TotalDue)) * 10000/COUNT(*) OVER() AS Bonus
+FROM Sales.SalesOrderHeader
+WHERE SalesPersonID IS NOT NULL
+AND OrderDate BETWEEN '1/1/2005' AND '12/31/2005'
+GROUP BY SalesPersonID
+ORDER BY TotalSales;
+
+
+USE AdventureWorks2012
+GO
+--Add an index
+IF EXISTS (SELECT * FROM sys.indexes WHERE object_id =
+OBJECT_ID(N'[Sales].[SalesOrderHeader]')
+AND name = N'DEMO_SalesOrderHeader_OrderDate')
+DROP INDEX [DEMO_SalesOrderHeader_OrderDate]
+ON [Sales].[SalesOrderHeader] WITH ( ONLINE = OFF );
+GO
+CREATE NONCLUSTERED INDEX [DEMO_SalesOrderHeader_OrderDate]
+ON [Sales].[SalesOrderHeader]
+([OrderDate] ASC);
+
+
+Listing 3-38. Compare the Performance When Using a Function in the WHERE Clause
+USE AdventureWorks2012;
+GO
+--1
+SELECT SalesOrderID, OrderDate
+FROM Sales.SalesOrderHeader
+WHERE OrderDate >= '2005-01-01 00:00:00'
+AND OrderDate <= '2006-01-01 00:00:00';
+--2
+SELECT SalesOrderID, OrderDate
+FROM Sales.SalesOrderHeader
+WHERE YEAR(OrderDate) = 2005;
+
+IF EXISTS (SELECT * FROM sys.indexes WHERE object_id =
+OBJECT_ID(N'[Sales].[SalesOrderHeader]')
+AND name = N'DEMO_SalesOrderHeader_OrderDate')
+DROP INDEX [DEMO_SalesOrderHeader_OrderDate]
+ON [Sales].[SalesOrderHeader] WITH ( ONLINE = OFF );
